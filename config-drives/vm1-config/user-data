@@ -1,0 +1,24 @@
+#cloud-config
+password: qwerty
+chpasswd: { expire: False }
+ssh_authorized_keys:
+ - 
+runcmd:
+ - mount -t iso9660 -o ro /dev/sr0 /mnt
+ - sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
+ - sysctl -p > /dev/null
+ - iptables -t nat -A POSTROUTING --out-interface ens3 -j MASQUERADE
+ - iptables -A FORWARD --in-interface ens4 -j ACCEPT
+ - apt-get update
+ - apt-get install apt-transport-https ca-certificates curl software-properties-common -y
+ - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+ - apt-key fingerprint 0EBFCD88
+ - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable"
+ - apt-get update
+ - apt-get install docker-ce -y
+ - mkdir -p /srv/log/nginx
+ - touch /srv/log/nginx/access.log
+ - ip link add vxlan0 type vxlan id 12345 remote 192.168.124.102 local 192.168.124.101 dstport 4789
+ - ip link set vxlan0 up
+ - ip addr add 10.255.0.101/24 dev vxlan0
+ - docker run --name hginx -v /srv/log/nginx/access.log:/var/log/nginx/access.log -v /root/certs:/etc/ssl/certs -v /etc/nginx.conf:/etc/nginx/conf.d/default.conf -d  -p 17080:80 nginx:1.13

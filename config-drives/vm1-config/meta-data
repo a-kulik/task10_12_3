@@ -1,0 +1,20 @@
+hostname: vm1
+local-hostname: vm1
+network-interfaces: |
+  auto ens3
+  iface ens3 inet dhcp
+  dns-nameservers 8.8.8.8
+  
+  auto ens4
+  iface ens4 inet static
+  address 192.168.124.101
+  network 192.168.124.0
+  netmask 255.255.255.0
+  broadcast 192.168.124.255
+  
+  auto ens5
+  iface ens5 inet static
+  address 192.168.125.101
+  network 192.168.125.0
+  netmask 255.255.255.0
+  broadcast 192.168.125.255

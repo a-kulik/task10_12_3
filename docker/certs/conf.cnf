@@ -1,0 +1,9 @@
+[ req ]
+default_bits = 4096
+distinguished_name  = req_distinguished_name
+req_extensions     = req_ext
+[ req_distinguished_name ]
+[ req_ext ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName          = IP:192.168.123.101,DNS:vm1
