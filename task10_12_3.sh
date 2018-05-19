@@ -116,7 +116,7 @@ chpasswd: { expire: False }
 ssh_authorized_keys:
  - $pub_key
 runcmd:
- - mount -t iso9660 -o ro /dev/sr0 /mnt
+ - mount -t iso9660 -o ro /dev/sr1 /mnt
  - mkdir /root/certs
  - mkdir /root/etc
  - cp /mnt/root.crt /root/certs/root.crt
