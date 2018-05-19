@@ -116,9 +116,8 @@ chpasswd: { expire: False }
 ssh_authorized_keys:
  - $pub_key
 runcmd:
- - mount -t iso9660 -o ro /dev/sr1 /mnt
+ - mount -t iso9660 -o ro /dev/sr0 /mnt
  - mkdir /root/certs
- - mkdir /root/etc
  - cp /mnt/root.crt /root/certs/root.crt
  - cp /mnt/web.crt /root/certs/web.crt
  - cp /mnt/web.key /root/certs/web.key
@@ -147,7 +146,6 @@ cp "$VM1_HDD".temp "$VM1_HDD"
 cp "$VM1_HDD".temp "$VM2_HDD"
 #--- Create two disks from image
 mkisofs -o "$VM1_CONFIG_ISO" -V cidata -r -J --quiet ${dir_pwd}/config-drives/vm1-config/
-mkisofs -o "$VM2_CONFIG_ISO" -V cidata -r -J --quiet ${dir_pwd}/config-drives/vm2-config/
 #--- Create network
 virsh net-define ${dir_pwd}/networks/external.xml
 virsh net-define ${dir_pwd}/networks/internal.xml
@@ -214,6 +212,7 @@ runcmd:
  - docker run --name apache -p ${VM2_VXLAN_IP}:${APACHE_PORT}:80 -d httpd:2.4
 EOF
 #--- Create  VM2
+mkisofs -o "$VM2_CONFIG_ISO" -V cidata -r -J --quiet ${dir_pwd}/config-drives/vm2-config/
 virt-install \
 --connect qemu:///system \
 --name $VM2_NAME \
