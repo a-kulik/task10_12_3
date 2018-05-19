@@ -9,7 +9,11 @@ mkdir -p $(echo "$VM1_CONFIG_ISO" |rev| cut -d / -f2- | rev)
 mkdir -p $(echo "$VM2_CONFIG_ISO" |rev| cut -d / -f2- | rev)
 mkdir -p ${dir_pwd}/docker/etc
 mkdir -p ${dir_pwd}/docker/certs
+mkdir -p ${dir_pwd}/config-drives/vm1-config/
+mkdir -p ${dir_pwd}/config-drives/vm2-config/
+mkdir -p ${dir_pwd}/networks/
 #--- Create nginx config
+touch ${dir_pwd}/docker/etc/nginx.conf
 cat << EOF > ${dir_pwd}/docker/etc/nginx.conf
 server {
     listen    80 ssl;
@@ -23,6 +27,7 @@ server {
    }
 EOF
 #--- Create certs
+touch ${dir_pwd}/docker/certs/conf.cnf
 cat << EOF > ${dir_pwd}/docker/certs/conf.cnf
 [ req ]
 default_bits = 4096
@@ -37,7 +42,6 @@ EOF
 openssl genrsa -out ${dir_pwd}/docker/certs/root.key 4096 > /dev/null
 openssl req -new -x509 -days 365 -key ${dir_pwd}/docker/certs/root.key -out ${dir_pwd}/docker/certs/root.crt -subj "/CN=root" > /dev/null
 openssl genrsa -out ${dir_pwd}/docker/certs/web.key 4096 > /dev/null
-touch ${dir_pwd}/docker/certs/conf.cnf
 openssl req -new -key ${dir_pwd}/docker/certs/web.key -config ${dir_pwd}/docker/certs/conf.cnf -reqexts req_ext -out ${dir_pwd}/docker/certs/web.csr -subj "/CN=${VM1_NAME}" > /dev/null
 openssl x509 -req -days 365 -CA ${dir_pwd}/docker/certs/root.crt -CAkey ${dir_pwd}/docker/certs/root.key -set_serial 01 -extfile ${dir_pwd}/docker/certs/conf.cnf -extensions req_ext -in ${dir_pwd}/docker/certs/web.csr -out ${dir_pwd}/docker/certs/web.crt > /dev/null
 #--- Copy files to iso disk
@@ -47,6 +51,7 @@ cp ${dir_pwd}/docker/certs/web.crt ${dir_pwd}/config-drives/vm1-config/web.crt
 cp ${dir_pwd}/docker/etc/nginx.conf ${dir_pwd}/config-drives/vm1-config/nginx.conf
 #--- external network
 MAC=52:54:00:`(date; cat /proc/interrupts) | md5sum | sed -r 's/^(.{6}).*$/\1/; s/([0-9a-f]{2})/\1:/g; s/:$//;'`
+touch ${dir_pwd}/networks/external.xml
 cat << EOF > ${dir_pwd}/networks/external.xml
 <network>
   <name>"$EXTERNAL_NET_NAME"</name>
@@ -63,12 +68,14 @@ cat << EOF > ${dir_pwd}/networks/external.xml
 </network>
 EOF
 #--- internal network
+touch ${dir_pwd}/networks/internal.xml
 cat << EOF > ${dir_pwd}/networks/internal.xml
 <network>
   <name>"$INTERNAL_NET_NAME"</name>
 </network>
 EOF
 #--- management network
+touch ${dir_pwd}/networks/management.xml
 cat << EOF > ${dir_pwd}/networks/management.xml
 <network>
   <name>"$MANAGEMENT_NET_NAME"</name>
@@ -76,6 +83,7 @@ cat << EOF > ${dir_pwd}/networks/management.xml
 </network>
 EOF
 #--- VM1 meta-data
+touch ${dir_pwd}/config-drives/vm1-config/meta-data
 cat << EOF > ${dir_pwd}/config-drives/vm1-config/meta-data
 hostname: $"VM1_NAME"
 local-hostname: $"VM1_NAME"
@@ -100,6 +108,7 @@ network-interfaces: |
 EOF
 #--- VM1 user-data
 pub_key=$(cat $SSH_PUB_KEY)
+touch ${dir_pwd}/config-drives/vm1-config/user-data
 cat << EOF > ${dir_pwd}/config-drives/vm1-config/user-data
 #cloud-config
 password: qwerty
@@ -161,6 +170,7 @@ virt-install \
 --graphics vnc,port=-1 \
 --noautoconsole --quiet --virt-type $VM_VIRT_TYPE
 #--- VM2 meta-data
+touch ${dir_pwd}/config-drives/vm2-config/meta-data
 cat << EOF > ${dir_pwd}/config-drives/vm2-config/meta-data 
 hostname: $"VM2_NAME"
 local-hostname: $"VM2_NAME"
@@ -182,6 +192,7 @@ network-interfaces: |
   broadcast ${MANAGEMENT_NET}.255
 EOF
 #--- VM2 user-data
+touch ${dir_pwd}/config-drives/vm2-config/user-data
 cat << EOF > ${dir_pwd}/config-drives/vm2-config/user-data
 #cloud-config
 password: qwerty
