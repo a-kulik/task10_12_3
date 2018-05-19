@@ -171,7 +171,7 @@ virt-install \
 --noautoconsole --quiet --virt-type $VM_VIRT_TYPE
 #--- VM2 meta-data
 touch ${dir_pwd}/config-drives/vm2-config/meta-data
-cat << EOF > ${dir_pwd}/config-drives/vm2-config/meta-data 
+cat << EOF > ${dir_pwd}/config-drives/vm2-config/meta-data
 hostname: $VM2_NAME
 local-hostname: $VM2_NAME
 network-interfaces: |
