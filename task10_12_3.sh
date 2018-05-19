@@ -1,29 +1,15 @@
 #!/bin/bash
-
-virsh destroy vm1
-virsh undefine vm1
-virsh destroy vm2
-virsh undefine vm2
-rm /var/lib/libvirt/images/vm1/vm1.qcow2
-rm /var/lib/libvirt/images/vm1/config-vm1.iso
-
-rm /var/lib/libvirt/images/vm2/vm2.qcow2
-rm /var/lib/libvirt/images/vm21/config-vm2.iso
-
-
-
-
 dir_pwd=$(dirname "$0")
 dir_pwd=$(cd "$dir_pwd" && pwd)
 source ${dir_pwd}/config
-# Chek folder
-#mkdir -p $(echo "$VM1_HDD" |rev| cut -d / -f2- | rev)
-#mkdir -p $(echo "$VM2_HDD" |rev| cut -d / -f2- | rev)
-#mkdir -p $(echo "$VM1_CONFIG_ISO" |rev| cut -d / -f2- | rev)
-#mkdir -p $(echo "$VM2_CONFIG_ISO" |rev| cut -d / -f2- | rev)
+#--- Chek folder
+mkdir -p $(echo "$VM1_HDD" |rev| cut -d / -f2- | rev)
+mkdir -p $(echo "$VM2_HDD" |rev| cut -d / -f2- | rev)
+mkdir -p $(echo "$VM1_CONFIG_ISO" |rev| cut -d / -f2- | rev)
+mkdir -p $(echo "$VM2_CONFIG_ISO" |rev| cut -d / -f2- | rev)
 mkdir -p ${dir_pwd}/docker/etc
 mkdir -p ${dir_pwd}/docker/certs
-# Create nginx config
+#--- Create nginx config
 cat << EOF > ${dir_pwd}/docker/etc/nginx.conf
 server {
     listen    80 ssl;
@@ -36,7 +22,7 @@ server {
     }
    }
 EOF
-# Create certs
+#--- Create certs
 cat << EOF > ${dir_pwd}/docker/certs/conf.cnf
 [ req ]
 default_bits = 4096
@@ -54,47 +40,66 @@ openssl genrsa -out ${dir_pwd}/docker/certs/web.key 4096 > /dev/null
 touch ${dir_pwd}/docker/certs/conf.cnf
 openssl req -new -key ${dir_pwd}/docker/certs/web.key -config ${dir_pwd}/docker/certs/conf.cnf -reqexts req_ext -out ${dir_pwd}/docker/certs/web.csr -subj "/CN=${VM1_NAME}" > /dev/null
 openssl x509 -req -days 365 -CA ${dir_pwd}/docker/certs/root.crt -CAkey ${dir_pwd}/docker/certs/root.key -set_serial 01 -extfile ${dir_pwd}/docker/certs/conf.cnf -extensions req_ext -in ${dir_pwd}/docker/certs/web.csr -out ${dir_pwd}/docker/certs/web.crt > /dev/null
-# Copy files to iso disk
-cp ${dir_pwd}/docker/certs/root.crt $(echo "$VM1_CONFIG_ISO" |rev| cut -d / -f2- | rev)/root.crt
-cp ${dir_pwd}/docker/certs/web.key.crt $(echo "$VM1_CONFIG_ISO" |rev| cut -d / -f2- | rev)/web.key
-cp ${dir_pwd}/docker/certs/web.crt $(echo "$VM1_CONFIG_ISO" |rev| cut -d / -f2- | rev)/web.crt
-cp ${dir_pwd}/docker/etc/nginx.conf $(echo "$VM1_CONFIG_ISO" |rev| cut -d / -f2- | rev)/nginx.conf
-# external network
-#MAC=52:54:00:`(date; cat /proc/interrupts) | md5sum | sed -r 's/^(.{6}).*$/\1/; s/([0-9a-f]{2})/\1:/g; s/:$//;'`
-#sed -i "s@br_ip@$EXTERNAL_NET_HOST_IP@" ${dir_pwd}/networks/external.xml
-#sed -i "s@net_name@$EXTERNAL_NET_NAME@" ${dir_pwd}/networks/external.xml
-#sed -i "s@net_mask@$EXTERNAL_NET_MASK@" ${dir_pwd}/networks/external.xml
-#sed -i "s@vm1_ip@$VM1_EXTERNAL_IP@" ${dir_pwd}/networks/external.xml
-#sed -i "s@vm1_name@$VM1_NAME@" ${dir_pwd}/networks/external.xml
-#sed -i "s@mac_id@$MAC@" ${dir_pwd}/networks/external.xml
-# internal network
-#sed -i "s@network_name@$INTERNAL_NET_NAME@" ${dir_pwd}/networks/internal.xml
-# management network
-#sed -i "s@network_name@$MANAGEMENT_NET_NAME@" ${dir_pwd}/networks/management.xml
-#sed -i "s@br_ip@$MANAGEMENT_HOST_IP@" ${dir_pwd}/networks/management.xml
-#sed -i "s@net_mask@$MANAGEMENT_NET_MASK@" ${dir_pwd}/networks/management.xml
-# VM1 meta-data
-#sed -i "s@vm_name@$VM1_NAME@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@ext_int@$VM1_EXTERNAL_IF@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@inter_int@$VM1_INTERNAL_IF@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@inter_ip@$VM1_INTERNAL_IP@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@inter_net@${INTERNAL_NET}.0@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@inter_mask@$INTERNAL_NET_MASK@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@inter_broad@${INTERNAL_NET}.255@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@manag_int@$VM1_MANAGEMENT_IF@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@manag_ip@$VM1_MANAGEMENT_IP@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@manag_net@${MANAGEMENT_NET}.0@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@manag_mask@$MANAGEMENT_NET_MASK@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@manag_broad@${MANAGEMENT_NET}.255@" ${dir_pwd}/config-drives/vm1-config/meta-data
-#sed -i "s@dns_vm@$VM_DNS@" ${dir_pwd}/config-drives/vm1-config/meta-data
-# VM1 user-data
+#--- Copy files to iso disk
+cp ${dir_pwd}/docker/certs/root.crt ${dir_pwd}/config-drives/vm1-config/root.crt
+cp ${dir_pwd}/docker/certs/web.key ${dir_pwd}/config-drives/vm1-config/web.key
+cp ${dir_pwd}/docker/certs/web.crt ${dir_pwd}/config-drives/vm1-config/web.crt
+cp ${dir_pwd}/docker/etc/nginx.conf ${dir_pwd}/config-drives/vm1-config/nginx.conf
+#--- external network
+MAC=52:54:00:`(date; cat /proc/interrupts) | md5sum | sed -r 's/^(.{6}).*$/\1/; s/([0-9a-f]{2})/\1:/g; s/:$//;'`
+cat << EOF > ${dir_pwd}/networks/external.xml
+<network>
+  <name>"$EXTERNAL_NET_NAME"</name>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <ip address="$EXTERNAL_NET_HOST_IP" netmask="$EXTERNAL_NET_MASK">
+    <dhcp>
+      <host mac="$MAC" name="$VM1_NAME" ip="$VM1_EXTERNAL_IP"/>
+    </dhcp>
+  </ip>
+</network>
+EOF
+#--- internal network
+cat << EOF > ${dir_pwd}/networks/internal.xml
+<network>
+  <name>"$INTERNAL_NET_NAME"</name>
+</network>
+EOF
+#--- management network
+cat << EOF > ${dir_pwd}/networks/management.xml
+<network>
+  <name>"$MANAGEMENT_NET_NAME"</name>
+  <ip address="$MANAGEMENT_HOST_IP" netmask="$MANAGEMENT_NET_MASK"/>
+</network>
+EOF
+#--- VM1 meta-data
+cat << EOF > ${dir_pwd}/config-drives/vm1-config/meta-data
+hostname: $"VM1_NAME"
+local-hostname: $"VM1_NAME"
+network-interfaces: |
+  auto $VM1_EXTERNAL_IF
+  iface $VM1_EXTERNAL_IF inet dhcp
+  dns-nameservers $VM_DNS
+
+  auto $VM1_INTERNAL_IF
+  iface $VM1_INTERNAL_IF inet static
+  address $VM1_INTERNAL_IP
+  network ${INTERNAL_NET}.0
+  netmask $INTERNAL_NET_MASK
+  broadcast ${INTERNAL_NET}.255
+
+  auto $VM1_MANAGEMENT_IF
+  iface $VM1_MANAGEMENT_IF inet static
+  address $VM1_MANAGEMENT_IP
+  network ${MANAGEMENT_NET}.0
+  netmask $MANAGEMENT_NET_MASK
+  broadcast ${MANAGEMENT_NET}.255
+EOF
+#--- VM1 user-data
 pub_key=$(cat $SSH_PUB_KEY)
-#root_ca_1=${dir_pwd}/docker/certs/root.crt
-#web_key_1=${dir_pwd}/docker/certs/web.key
-#web_crt_1=$(cat ${dir_pwd}/docker/certs/web.crt)
-#echo -e "web_key=${web_key_1}" >> ${dir_pwd}/config
-#source ${dir_pwd}/config
-#web_key_7=$(cat $web_key)
 cat << EOF > ${dir_pwd}/config-drives/vm1-config/user-data
 #cloud-config
 password: qwerty
@@ -103,6 +108,12 @@ ssh_authorized_keys:
  - $pub_key
 runcmd:
  - mount -t iso9660 -o ro /dev/sr0 /mnt
+ - mkdir /root/certs
+ - mkdir /root/etc
+ - cp /mnt/root.crt /root/certs/root.crt
+ - cp /mnt/web.crt /root/certs/web.crt
+ - cp /mnt/web.key /root/certs/web.key
+ - cp /mnt/nginx.conf /root/etc/nginx.conf
  - sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
  - sysctl -p > /dev/null
  - iptables -t nat -A POSTROUTING --out-interface $VM1_EXTERNAL_IF -j MASQUERADE
@@ -119,52 +130,58 @@ runcmd:
  - ip link add $VXLAN_IF type vxlan id $VID remote $VM2_INTERNAL_IP local $VM1_INTERNAL_IP dstport 4789
  - ip link set $VXLAN_IF up
  - ip addr add ${VM1_VXLAN_IP}/24 dev $VXLAN_IF
- - docker run --name hginx -v $NGINX_LOG_DIR/access.log:/var/log/nginx/access.log -v /root/certs:/etc/ssl/certs -v /etc/nginx.conf:/etc/nginx/conf.d/default.conf -d  -p $NGINX_PORT:80 nginx:1.13
+ - docker run --name hginx -v $NGINX_LOG_DIR/access.log:/var/log/nginx/access.log -v /root/certs:/etc/ssl/certs -v /root/etc/nginx.conf:/etc/nginx/conf.d/default.conf -d  -p $NGINX_PORT:80 nginx:1.13
 EOF
-- mount -t iso9660 -o ro /dev/sr0 /mnt
-# Download Ubuntu cloud image
-#wget -O "$VM1_HDD" "$VM_BASE_IMAGE"
-#cp "$VM1_HDD" "$VM1_HDD".temp
+#--- Download Ubuntu cloud image
+wget -O "$VM1_HDD".temp "$VM_BASE_IMAGE"
 cp "$VM1_HDD".temp "$VM1_HDD"
 cp "$VM1_HDD".temp "$VM2_HDD"
-# Create two disks from image
+#--- Create two disks from image
 mkisofs -o "$VM1_CONFIG_ISO" -V cidata -r -J --quiet ${dir_pwd}/config-drives/vm1-config/
 mkisofs -o "$VM2_CONFIG_ISO" -V cidata -r -J --quiet ${dir_pwd}/config-drives/vm2-config/
-# Create network
-#virsh net-define ${dir_pwd}/networks/external.xml
-#virsh net-define ${dir_pwd}/networks/internal.xml
-#virsh net-define ${dir_pwd}/networks/management.xml
-#virsh net-start external
-#virsh net-start internal
-#virsh net-start management
-# Create  VM1
+#--- Create network
+virsh net-define ${dir_pwd}/networks/external.xml
+virsh net-define ${dir_pwd}/networks/internal.xml
+virsh net-define ${dir_pwd}/networks/management.xml
+virsh net-start external
+virsh net-start internal
+virsh net-start management
+#--- Create  VM1
 virt-install \
 --connect qemu:///system \
---name $VM1_NAME \
+--name $"VM1_NAME" \
 --import \
 --ram $VM1_MB_RAM --vcpus=$VM1_NUM_CPU --$VM_TYPE \
 --os-type=linux --os-variant=ubuntu16.04 \
 --disk path="$VM1_HDD",format=qcow2,bus=virtio,cache=none \
 --disk path="$VM1_CONFIG_ISO",device=cdrom \
---network network=$EXTERNAL_NET_NAME,mac=52:54:00:d0:68:ae \
+--network network=$EXTERNAL_NET_NAME,mac="$MAC" \
 --network network=$INTERNAL_NET_NAME \
 --network network=$MANAGEMENT_NET_NAME \
 --graphics vnc,port=-1 \
 --noautoconsole --quiet --virt-type $VM_VIRT_TYPE
-# VM2 meta-data
-#sed -i "s@vm_name@$VM2_NAME@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@inter_int@$VM2_INTERNAL_IF@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@inter_ip@$VM2_INTERNAL_IP@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@inter_net@${INTERNAL_NET}.0@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@inter_mask@$INTERNAL_NET_MASK@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@inter_broad@${INTERNAL_NET}.255@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@manag_int@$VM2_MANAGEMENT_IF@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@manag_ip@$VM2_MANAGEMENT_IP@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@manag_net@${MANAGEMENT_NET}.0@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@manag_mask@$MANAGEMENT_NET_MASK@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@manag_broad@${MANAGEMENT_NET}.255@" ${dir_pwd}/config-drives/vm2-config/meta-data
-#sed -i "s@dns_vm@$VM_DNS@" ${dir_pwd}/config-drives/vm2-config/meta-data
-# VM2 user-data
+#--- VM2 meta-data
+cat << EOF > ${dir_pwd}/config-drives/vm2-config/meta-data 
+hostname: $"VM2_NAME"
+local-hostname: $"VM2_NAME"
+network-interfaces: |
+
+  auto $VM2_INTERNAL_IF
+  iface $VM2_INTERNAL_IF inet static
+  address $VM2_INTERNAL_IP
+  network ${INTERNAL_NET}.0
+  netmask $INTERNAL_NET_MASK
+  broadcast ${INTERNAL_NET}.255
+  dns-nameservers $VM_DNS
+
+  auto $VM2_MANAGEMENT_IF
+  iface $VM2_MANAGEMENT_IF inet static
+  address $VM2_MANAGEMENT_IP
+  network ${MANAGEMENT_NET}.0
+  netmask $MANAGEMENT_NET_MASK
+  broadcast ${MANAGEMENT_NET}.255
+EOF
+#--- VM2 user-data
 cat << EOF > ${dir_pwd}/config-drives/vm2-config/user-data
 #cloud-config
 password: qwerty
@@ -185,11 +202,10 @@ runcmd:
  - ip addr add ${VM2_VXLAN_IP}/24 dev $VXLAN_IF
  - docker run --name apache -p ${VM2_VXLAN_IP}:${APACHE_PORT}:80 -d httpd:2.4
 EOF
-# Create  VM2
-: '
+#--- Create  VM2
 virt-install \
 --connect qemu:///system \
---name $VM2_NAME \
+--name $"VM2_NAME" \
 --import \
 --ram $VM2_MB_RAM --vcpus=$VM2_NUM_CPU --$VM_TYPE \
 --os-type=linux --os-variant=ubuntu16.04 \
@@ -199,4 +215,8 @@ virt-install \
 --network network=$MANAGEMENT_NET_NAME \
 --graphics vnc,port=-1 \
 --noautoconsole --quiet --virt-type $VM_VIRT_TYPE
-'
+#---
+rm ${dir_pwd}/config-drives/vm1-config/root.crt
+rm ${dir_pwd}/config-drives/vm1-config/web.key
+rm ${dir_pwd}/config-drives/vm1-config/web.crt
+rm ${dir_pwd}/config-drives/vm1-config/nginx.conf
