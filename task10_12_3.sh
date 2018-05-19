@@ -54,7 +54,7 @@ MAC=52:54:00:`(date; cat /proc/interrupts) | md5sum | sed -r 's/^(.{6}).*$/\1/; 
 touch ${dir_pwd}/networks/external.xml
 cat << EOF > ${dir_pwd}/networks/external.xml
 <network>
-  <name>$"EXTERNAL_NET_NAME"</name>
+  <name>$EXTERNAL_NET_NAME</name>
   <forward mode='nat'>
     <nat>
       <port start='1024' end='65535'/>
@@ -71,22 +71,22 @@ EOF
 touch ${dir_pwd}/networks/internal.xml
 cat << EOF > ${dir_pwd}/networks/internal.xml
 <network>
-  <name>$"INTERNAL_NET_NAME"</name>
+  <name>$INTERNAL_NET_NAME</name>
 </network>
 EOF
 #--- management network
 touch ${dir_pwd}/networks/management.xml
 cat << EOF > ${dir_pwd}/networks/management.xml
 <network>
-  <name>$"MANAGEMENT_NET_NAME"</name>
+  <name>$MANAGEMENT_NET_NAME</name>
   <ip address="$MANAGEMENT_HOST_IP" netmask="$MANAGEMENT_NET_MASK"/>
 </network>
 EOF
 #--- VM1 meta-data
 touch ${dir_pwd}/config-drives/vm1-config/meta-data
 cat << EOF > ${dir_pwd}/config-drives/vm1-config/meta-data
-hostname: $"VM1_NAME"
-local-hostname: $"VM1_NAME"
+hostname: $VM1_NAME
+local-hostname: $VM1_NAME
 network-interfaces: |
   auto $VM1_EXTERNAL_IF
   iface $VM1_EXTERNAL_IF inet dhcp
@@ -158,7 +158,7 @@ virsh net-start management
 #--- Create  VM1
 virt-install \
 --connect qemu:///system \
---name $"VM1_NAME" \
+--name $VM1_NAME \
 --import \
 --ram $VM1_MB_RAM --vcpus=$VM1_NUM_CPU --$VM_TYPE \
 --os-type=linux --os-variant=ubuntu16.04 \
@@ -172,8 +172,8 @@ virt-install \
 #--- VM2 meta-data
 touch ${dir_pwd}/config-drives/vm2-config/meta-data
 cat << EOF > ${dir_pwd}/config-drives/vm2-config/meta-data 
-hostname: $"VM2_NAME"
-local-hostname: $"VM2_NAME"
+hostname: $VM2_NAME
+local-hostname: $VM2_NAME
 network-interfaces: |
 
   auto $VM2_INTERNAL_IF
@@ -216,7 +216,7 @@ EOF
 #--- Create  VM2
 virt-install \
 --connect qemu:///system \
---name $"VM2_NAME" \
+--name $VM2_NAME \
 --import \
 --ram $VM2_MB_RAM --vcpus=$VM2_NUM_CPU --$VM_TYPE \
 --os-type=linux --os-variant=ubuntu16.04 \
