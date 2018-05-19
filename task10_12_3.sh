@@ -118,9 +118,11 @@ ssh_authorized_keys:
 runcmd:
  - mount -t iso9660 -o ro /dev/sr0 /mnt
  - mkdir /root/certs
+ - mkdir /root/etc
  - cp /mnt/root.crt /root/certs/root.crt
  - cp /mnt/web.crt /root/certs/web.crt
  - cp /mnt/web.key /root/certs/web.key
+ - cp /mnt/nginx.conf /root/etc/nginx.conf
  - sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/' /etc/sysctl.conf
  - sysctl -p > /dev/null
  - iptables -t nat -A POSTROUTING --out-interface $VM1_EXTERNAL_IF -j MASQUERADE
@@ -133,7 +135,6 @@ runcmd:
  - apt-get update
  - apt-get install docker-ce -y
  - mkdir -p $NGINX_LOG_DIR
- - cp /mnt/nginx.conf $NGINX_LOG_DIR/nginx.conf
  - touch $NGINX_LOG_DIR/access.log
  - ip link add $VXLAN_IF type vxlan id $VID remote $VM2_INTERNAL_IP local $VM1_INTERNAL_IP dstport 4789
  - ip link set $VXLAN_IF up
