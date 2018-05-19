@@ -54,7 +54,7 @@ MAC=52:54:00:`(date; cat /proc/interrupts) | md5sum | sed -r 's/^(.{6}).*$/\1/; 
 touch ${dir_pwd}/networks/external.xml
 cat << EOF > ${dir_pwd}/networks/external.xml
 <network>
-  <name>"$EXTERNAL_NET_NAME"</name>
+  <name>$"EXTERNAL_NET_NAME"</name>
   <forward mode='nat'>
     <nat>
       <port start='1024' end='65535'/>
@@ -71,14 +71,14 @@ EOF
 touch ${dir_pwd}/networks/internal.xml
 cat << EOF > ${dir_pwd}/networks/internal.xml
 <network>
-  <name>"$INTERNAL_NET_NAME"</name>
+  <name>$"INTERNAL_NET_NAME"</name>
 </network>
 EOF
 #--- management network
 touch ${dir_pwd}/networks/management.xml
 cat << EOF > ${dir_pwd}/networks/management.xml
 <network>
-  <name>"$MANAGEMENT_NET_NAME"</name>
+  <name>$"MANAGEMENT_NET_NAME"</name>
   <ip address="$MANAGEMENT_HOST_IP" netmask="$MANAGEMENT_NET_MASK"/>
 </network>
 EOF
